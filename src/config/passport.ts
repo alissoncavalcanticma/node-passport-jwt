@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
+//import passport
 import passport from "passport";
+//import jsonwebtoken
+import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { User } from "../models/User";
 
@@ -30,10 +33,21 @@ passport.use(new JWTStrategy(options, async (payload, done) => {
     const user = await User.findByPk(payload.id);
 
     //Expressão ternária para verificar se retornou algum registro do BD
-    return user ? done(null, user) : done(notAuthorized, false);
+    if(user){
+        return done(null, user);
+    }else{
+        return done(notAuthorized, false);
+    }
+    
+    //return user ? done(null, user) : done(notAuthorized, false);
     
 }));
 
+//Função de gerar token
+
+export const generateToken = (data: object) => {
+    return jwt.sign(data, process.env.JWT_PRIVATE_KEY as string);
+}
 
 //Criação do Middleware para autenticação das rotas
 export const privateRoute = (req: Request, res: Response, next: NextFunction) => {
@@ -41,7 +55,11 @@ export const privateRoute = (req: Request, res: Response, next: NextFunction) =>
     //Criação de função de autenticação
     const authFunction = passport.authenticate('jwt', (err: any, user: any) =>{
         req.user = user; // colocar o objeto user dentro da req para ser usado
-        return user ? next() : next(notAuthorized);
+        if(user){
+            next()
+        }else{
+            next(notAuthorized);
+        }
     });
     // execução de função de autenticação
     authFunction(req, res, next);
