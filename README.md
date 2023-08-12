@@ -50,7 +50,7 @@ Before starting :checkered_flag:, you need to have [Git](https://git-scm.com) an
 $ git clone https://github.com/alissoncavalcanticma/node-passport-jwt
 
 # Access
-$ cd node-passport
+$ cd node-passport-jwt
 
 # Install dependencies
 $ npm i
