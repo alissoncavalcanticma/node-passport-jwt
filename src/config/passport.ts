@@ -1,39 +1,54 @@
-import {Request, Response, NextFunction} from 'express';
-import passport, { use } from "passport";
-import { BasicStrategy } from "passport-http";
+import { Request, Response, NextFunction } from "express";
+import passport from "passport";
+import dotenv from 'dotenv';
+import { User } from "../models/User";
 
-import { User } from '../models/User';
+//import strategy
+/* The line `import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";` is importing the
+`Strategy` and `ExtractJwt` objects from the "passport-jwt" module. These objects are used to define
+and configure the JSON Web Token (JWT) authentication strategy for Passport.js. */
+import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
+
+
+
+dotenv.config();
 
 //Const para uso do retorno da strategy
 const notAuthorized = {status: 401, message: "Not Authorized!"};
 
-// Definição e configuração da strategy que será utilizada
-passport.use(new BasicStrategy( async (email, password, done) => {
+// Const de Options da Strategy
+const options = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.JWT_PRIVATE_KEY as string
+}
 
-    if(email && password){
-        const user = await User.findOne({
-            where:{
-                email, password
-            }
-        });
-        if(user){
-            return done(null, user);
-        }
-    }
-    return done(notAuthorized, false);
 
+//Definição e configuração de uso da Strategy JWT
+passport.use(new JWTStrategy(options, async (payload, done) => {
+    
+    //Const para receber a consulta do BD pelo id extraído do token
+    const user = await User.findByPk(payload.id);
+
+    //Expressão ternária para verificar se retornou algum registro do BD
+    return user ? done(null, user) : done(notAuthorized, false);
+    
 }));
 
+
 //Criação do Middleware para autenticação das rotas
-export const privateRoute = (req: Request, res: Response, next: NextFunction) =>{
-    //Cria a const authFunction
-    const authFunction = passport.authenticate('basic', (err: any, user: any) => {
-        req.user = user;
+export const privateRoute = (req: Request, res: Response, next: NextFunction) => {
+
+    //Criação de função de autenticação
+    const authFunction = passport.authenticate('jwt', (err: any, user: any) =>{
+        req.user = user; // colocar o objeto user dentro da req para ser usado
         return user ? next() : next(notAuthorized);
     });
-    //Executa authFunction
+    // execução de função de autenticação
     authFunction(req, res, next);
+
 }
+
+
 
 //exporta o objeto passport
 export default passport;

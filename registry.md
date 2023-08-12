@@ -19,6 +19,17 @@
       - Instalando suporte ao typescript para a lib
         `npm i -D @types/passport-http`
 
+  - Instalando a lib passport-jwt
+    `npm i passport-jwt`
+
+      - Instalando suporte ao typescript para a lib
+        `npm i -D @types/passport-jwt`
+
+  - Instalando a lib jsonwebtoken (Para geração do token no login)
+    `npm i jsonwebtoken`
+
+      - Instalando suporte ao typescript para a lib
+        `npm i -D @types/jsonwebtoken`
 
 ####Instruções:
 
